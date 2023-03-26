@@ -656,6 +656,8 @@ typedef struct os_tcb {
 #if OS_TASK_NAME_SIZE > 1
     INT8U            OSTCBTaskName[OS_TASK_NAME_SIZE];
 #endif
+    INT32U          compTime;
+    INT32U          period;
 } OS_TCB;
 
 /*$PAGE*/
