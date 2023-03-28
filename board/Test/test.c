@@ -22,15 +22,15 @@
 
 #define          TASK_STK_SIZE       2048             /* Size of each task's stacks (# of WORDs)       */
 
-#define          TASK_START_ID       0                /* Application tasks                             */
-#define          TASK_1_ID           1
-#define          TASK_2_ID           2
-#define          TASK_3_ID           3
+#define          TASK_START_ID       5                /* Application tasks                             */
+#define          TASK_1_ID           0
+#define          TASK_2_ID           1
+#define          TASK_3_ID           2
 
-#define          TASK_START_PRIO     1                /* Application tasks priorities                  */
-#define          TASK_1_PRIO         2
-#define          TASK_2_PRIO         3
-#define          TASK_3_PRIO         4
+#define          TASK_START_PRIO     5                /* Application tasks priorities                  */
+#define          TASK_1_PRIO         1
+#define          TASK_2_PRIO         2
+#define          TASK_3_PRIO         3
 
 /*
 *********************************************************************************************************
@@ -43,7 +43,7 @@ typedef struct {
     INT16U  TaskCtr;
     INT16U  TaskExecTime;
     INT32U  TaskTotExecTime;
-} TASK_USER_DATA;
+} TASK_USER_DATA1;
 
 typedef struct period{
     int exeTime;
@@ -61,7 +61,7 @@ OS_STK          Task1Stk[TASK_STK_SIZE];              /* Task #1    task stack  
 OS_STK          Task2Stk[TASK_STK_SIZE];              /* Task #2    task stack                         */
 OS_STK          Task3Stk[TASK_STK_SIZE];              /* Task #3    task stack                         */
 
-TASK_USER_DATA  TaskUserData[7];
+TASK_USER_DATA1  TaskUserData1[7];
 
 #if example == 0
     #define UserProcessNum  2
@@ -88,10 +88,11 @@ static  void  TaskStartCreateTasks(void);
 *                                                  MAIN
 *********************************************************************************************************
 */
-
+INT16U global_start = 0;
 void  main (void)
 {
-    strcpy(TaskUserData[TASK_START_ID].TaskName, "StartTask");
+	TaskStartCreateTasks();
+    strcpy(TaskUserData1[TASK_START_ID].TaskName, "StartTask");
     OSTaskCreateExt(TaskStart,
                     (void *)0,
                     &TaskStartStk[TASK_STK_SIZE - 1],
@@ -99,9 +100,11 @@ void  main (void)
                     TASK_START_ID,
                     &TaskStartStk[0],
                     TASK_STK_SIZE,
-                    &TaskUserData[TASK_START_ID],
-                    0);  
-    OSStart();                                             /* Start multitasking                       */
+                    &TaskUserData1[TASK_START_ID],
+                    0);
+    OSTimeSet(0);
+    global_start = OSTimeGet();
+    OSStart();                                   /* Start multitasking                       */
 }
 
 /*$PAGE*/
@@ -118,9 +121,6 @@ void  TaskStart (void *pdata)
     OS_CPU_SR  cpu_sr;
 #endif
     pdata = pdata;                                         /* Prevent compiler warning                 */
-
-    TaskStartCreateTasks();
-
     for (;;) {
         OS_ENTER_CRITICAL();
         while(OSTASKDmp.queue_tail != OSTASKDmp.queue_head || OSTASKDmp.full == 1){
@@ -146,7 +146,7 @@ void  TaskStart (void *pdata)
 void  TaskStartCreateTasks (void)
 {
 #if example == 0
-    strcpy(TaskUserData[TASK_1_ID].TaskName, "Task1(1,3)");
+    strcpy(TaskUserData1[TASK_1_ID].TaskName, "Task1(1,3)");
     TaskPdata[0].exeTime = 1;
     TaskPdata[0].period = 3;
     OSTaskCreateExt(Task,
@@ -156,9 +156,9 @@ void  TaskStartCreateTasks (void)
                     TASK_1_ID,
                     &Task1Stk[0],
                     TASK_STK_SIZE,
-                    &TaskUserData[TASK_1_ID],
+                    &TaskUserData1[TASK_1_ID],
                     0);
-    strcpy(TaskUserData[TASK_2_ID].TaskName, "Task2(3,6)");
+    strcpy(TaskUserData1[TASK_2_ID].TaskName, "Task2(3,6)");
     TaskPdata[1].exeTime = 3;
     TaskPdata[1].period = 6;
     OSTaskCreateExt(Task,
@@ -168,12 +168,12 @@ void  TaskStartCreateTasks (void)
                     TASK_2_ID,
                     &Task2Stk[0],
                     TASK_STK_SIZE,
-                    &TaskUserData[TASK_2_ID],
+                    &TaskUserData1[TASK_2_ID],
                     0);
 
-    
+
 #elif example == 1
-    strcpy(TaskUserData[TASK_1_ID].TaskName, "Task1(1,3)");
+    strcpy(TaskUserData1[TASK_1_ID].TaskName, "Task1(1,3)");
     TaskPdata[0].exeTime = 1;
     TaskPdata[0].period = 3;
     OSTaskCreateExt(Task,
@@ -183,9 +183,9 @@ void  TaskStartCreateTasks (void)
                     TASK_1_ID,
                     &Task1Stk[0],
                     TASK_STK_SIZE,
-                    &TaskUserData[TASK_1_ID],
+                    &TaskUserData1[TASK_1_ID],
                     0);
-    strcpy(TaskUserData[TASK_2_ID].TaskName, "Task2(3,6)");
+    strcpy(TaskUserData1[TASK_2_ID].TaskName, "Task2(3,6)");
     TaskPdata[1].exeTime = 3;
     TaskPdata[1].period = 6;
     OSTaskCreateExt(Task,
@@ -195,9 +195,9 @@ void  TaskStartCreateTasks (void)
                     TASK_2_ID,
                     &Task2Stk[0],
                     TASK_STK_SIZE,
-                    &TaskUserData[TASK_2_ID],
+                    &TaskUserData1[TASK_2_ID],
                     0);
-    strcpy(TaskUserData[TASK_3_ID].TaskName, "Task3(4,9)");
+    strcpy(TaskUserData1[TASK_3_ID].TaskName, "Task3(4,9)");
     TaskPdata[2].exeTime = 4;
     TaskPdata[2].period = 9;
     OSTaskCreateExt(Task,
@@ -207,28 +207,29 @@ void  TaskStartCreateTasks (void)
                     TASK_3_ID,
                     &Task3Stk[0],
                     TASK_STK_SIZE,
-                    &TaskUserData[TASK_3_ID],
+                    &TaskUserData1[TASK_3_ID],
                     0);
 #endif
 
 }
-/*$PAGE*/
+/*$PAGE*/
 /*
 *********************************************************************************************************
 *                                               TASK #1
 *********************************************************************************************************
 */
 
+char Break = 0;
+
 void  Task (void *pdata)
 {
-    char  *msg;
-    INT8U  err;
-
-
+#if OS_CRITICAL_METHOD == 3                                /* Allocate storage for CPU status register */
+    OS_CPU_SR  cpu_sr;
+#endif
     TASK_PARAMETER_DATA *argv = (TASK_PARAMETER_DATA*)pdata;
     INT16U start;
     INT16U end;
-    INT16U toDelay;
+    INT32U toDelay;
 
     INT16U c = argv->exeTime;
     OS_ENTER_CRITICAL();
@@ -236,20 +237,31 @@ void  Task (void *pdata)
     OSTCBCur->period = argv->period;
     OS_EXIT_CRITICAL();
 
-    start = OSTimeGet();
+    start = global_start;
 
     while (1)
     {
-        while(OSTCBCur->compTime > 0);
+        while(OSTCBCur->compTime > 0)if (Break == 1) break;
+        if (Break == 1) break;
         end = OSTimeGet();
         toDelay = OSTCBCur->period - (end - start);
+        if (toDelay > OSTCBCur->period || toDelay < 0) {
+        	OS_ENTER_CRITICAL();
+        	if(OSTASKDmp.full == 0 || OSTASKDmp.queue_head != OSTASKDmp.queue_tail){
+        	    sprintf(OSTASKDmp.queue[OSTASKDmp.queue_tail],"%5d Delay     %5d\n",start + OSTCBCur->period, OSTCBCur->OSTCBPrio);
+        	    OSTASKDmp.queue_tail = (OSTASKDmp.queue_tail+1) % 32;
+        	    OSTASKDmp.full = 1;
+        	    Break = 1;
+        	}
+        	OS_EXIT_CRITICAL();
+        }
         start = start + OSTCBCur->period;
         OS_ENTER_CRITICAL();
         OSTCBCur->compTime = c;
         OS_EXIT_CRITICAL();
         OSTimeDly(toDelay);
     }
-    
+
 }
 
 /******************************************************************************
